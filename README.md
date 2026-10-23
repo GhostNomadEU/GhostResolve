@@ -1,3 +1,5 @@
+![GhostResolve - AI Support Resolution Agent](https://raw.githubusercontent.com/GhostNomadEU/GhostResolve/main/Header.png)
+
 # GhostResolve 👻
 
 **AI Customer Support & Complaint Resolution Agent for Make.com**
