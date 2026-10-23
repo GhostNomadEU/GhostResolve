@@ -1,0 +1,200 @@
+{
+    "name": "GhostResolve - AI Support Resolution",
+    "flow": [
+        {
+            "id": 1,
+            "module": "google-email:triggerWatchNewEmails",
+            "version": 4,
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 300
+                }
+            }
+        },
+        {
+            "id": 2,
+            "module": "ai-local-agent:RunLocalAIAgent",
+            "version": 0,
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 300,
+                    "name": "GhostResolve Agent"
+                }
+            },
+            "tools": [
+                {
+                    "name": "Search approved support knowledge",
+                    "description": "Search the approved Airtable support-knowledge table for verified policy, product, troubleshooting, and FAQ information relevant to the customer’s request. Use these results as the only factual basis for customer-facing guidance. If no relevant approved source is found, do not invent an answer; recommend human review.",
+                    "flow": [
+                        {
+                            "id": 3,
+                            "module": "airtable:ActionSearchRecords",
+                            "version": 3,
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 550,
+                                    "name": "Search Support KB"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Find related support cases",
+                    "description": "Search the Airtable support-case history for similar or repeated customer complaints. Use results to flag possible duplicates and recurring product or service issues, without treating a prior case as verified policy or as proof that the current request is already resolved.",
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "airtable:ActionSearchRecords",
+                            "version": 3,
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 750,
+                                    "name": "Search Prior Cases"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "module": "builtin:BasicIfElse",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 150
+                }
+            },
+            "branches": [
+                {
+                    "merge": false,
+                    "label": "Safe auto-reply",
+                    "type": "condition",
+                    "flow": [
+                        {
+                            "id": 7,
+                            "module": "google-email:replyToAnEmail",
+                            "version": 4,
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 0,
+                                    "name": "Auto Reply"
+                                }
+                            }
+                        },
+                        {
+                            "id": 8,
+                            "module": "airtable:ActionCreateRecord",
+                            "version": 3,
+                            "metadata": {
+                                "designer": {
+                                    "x": 1200,
+                                    "y": 0,
+                                    "name": "Log Auto Case"
+                                }
+                            }
+                        }
+                    ],
+                    "conditions": [
+                        [
+                            {
+                                "a": "{{2.jsonResponse.confidence}}",
+                                "o": "number:greaterorequal",
+                                "b": "0.85"
+                            },
+                            {
+                                "a": "{{2.jsonResponse.sensitive}}",
+                                "o": "boolean:equal",
+                                "b": "false"
+                            },
+                            {
+                                "a": "{{2.jsonResponse.supported_by_knowledge}}",
+                                "o": "boolean:equal",
+                                "b": "true"
+                            },
+                            {
+                                "a": "{{2.jsonResponse.priority}}",
+                                "o": "text:notequal",
+                                "b": "urgent"
+                            }
+                        ]
+                    ]
+                },
+                {
+                    "merge": false,
+                    "disabled": false,
+                    "label": "",
+                    "type": "else",
+                    "flow": [
+                        {
+                            "id": 6,
+                            "module": "google-email:createADraft",
+                            "version": 4,
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 300,
+                                    "name": "Review Draft"
+                                }
+                            }
+                        },
+                        {
+                            "id": 9,
+                            "module": "slack:CreateMessage",
+                            "version": 4,
+                            "metadata": {
+                                "designer": {
+                                    "x": 1200,
+                                    "y": 300,
+                                    "name": "Escalate to Support"
+                                }
+                            }
+                        },
+                        {
+                            "id": 10,
+                            "module": "airtable:ActionCreateRecord",
+                            "version": 3,
+                            "metadata": {
+                                "designer": {
+                                    "x": 1500,
+                                    "y": 300,
+                                    "name": "Log Review Case"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com",
+        "notes": []
+    }
+}
