@@ -39,7 +39,7 @@ Gmail: Watch emails
 The Airtable search modules are agent tools. One searches approved support content; the other searches historical cases. Previous cases can help identify patterns, but they must not be treated as authoritative policy or verified answers.
 ## ⚙️ GhostResolve Workflow
 
-![GhostResolve Workflow](https://raw.githubusercontent.com/GhostNomadEU/GhostResolve/main/Workflow.jpg)
+![GhostResolve Workflow](https://raw.githubusercontent.com/GhostNomadEU/GhostResolve/main/Workflow.png)
 
 ## Safety and routing
 
